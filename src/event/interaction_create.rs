@@ -492,7 +492,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             "subscribed" | "not_subscribed" => {
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
-										d.content("**[3/4]:** Why did you join our community?\nI will point you to the correct channels with this info.").components(|c| {
+										d.content("**[3/4]:** Why did you join our community?").components(|c| {
 											c.create_action_row(|a| {
 												a.create_button(|b|{
 													b.label("To hangout with others");
