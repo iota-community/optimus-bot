@@ -372,7 +372,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                         },
                         SelectMenuSpec {
                             value: "Found: FromSeachEngine",
-                            label: "Search Engien",
+                            label: "Search Engine",
                             description: "I found IOTA & Shimmer through a search engine",
                             display_emoji: "🔎",
                         },
