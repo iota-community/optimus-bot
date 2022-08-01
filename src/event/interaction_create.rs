@@ -234,7 +234,7 @@ async fn close_issue(mci: &MessageComponentInteraction, ctx: &Context) {
 async fn assign_roles(
     mci: &MessageComponentInteraction,
     ctx: &Context,
-    role_choices: Vec<String>,
+    role_choices: &Vec<String>,
     member: &mut Member,
     member_role: &Role
 ) {
@@ -398,7 +398,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             value: "Found: FromMeetup",
                             label: "Event",
                             description: "Participated in an IOTA & Shimmer event (Meetup, etc...)",
-                            display_emoji: "🔗",                        
+                            display_emoji: "🔗", 
+                        }                       
                     ]);
 
                     let mut role_choices: Vec<String> = Vec::new();
@@ -625,6 +626,44 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 //     .await
                                 // {
 
+                                // save the found from data
+                                followup_results
+                                    .data
+                                    .values
+                                    .iter()
+                                    .for_each(|x| role_choices.push(x.to_string()));
+
+                                // Remove old roles
+                                if let Some(roles) = member.roles(&ctx.cache) {
+                                    // Remove all assignable roles first
+                                    let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
+                                    all_assignable_roles.append(&mut additional_roles.clone());
+                                    all_assignable_roles.append(&mut poll_entries);
+                                    let mut removeable_roles: Vec<RoleId> = Vec::new();
+
+                                    for role in roles {
+                                        if all_assignable_roles.iter().any(|x| x.value == role.name)
+                                        {
+                                            removeable_roles.push(role.id);
+                                        }
+                                    }
+                                    if !removeable_roles.is_empty() {
+                                        member
+                                            .remove_roles(&ctx.http, &removeable_roles)
+                                            .await
+                                            .unwrap();
+                                    }
+                                }
+
+                                assign_roles(
+                                    &mci,
+                                    ctx,
+                                    &role_choices,
+                                    &mut member,
+                                    &member_role,
+                                )
+                                .await;
+
                                 if never_introduced {
                                     // Wait for the submittion on INTRODUCTION_CHANNEL
                                     if let Some(msg) = mci
@@ -784,43 +823,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     }
                                 }
 
-                                // save the found from data
-                                followup_results
-                                    .data
-                                    .values
-                                    .iter()
-                                    .for_each(|x| role_choices.push(x.to_string()));
-
-                                // Remove old roles
-                                if let Some(roles) = member.roles(&ctx.cache) {
-                                    // Remove all assignable roles first
-                                    let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
-                                    all_assignable_roles.append(&mut additional_roles);
-                                    all_assignable_roles.append(&mut poll_entries);
-                                    let mut removeable_roles: Vec<RoleId> = Vec::new();
-
-                                    for role in roles {
-                                        if all_assignable_roles.iter().any(|x| x.value == role.name)
-                                        {
-                                            removeable_roles.push(role.id);
-                                        }
-                                    }
-                                    if !removeable_roles.is_empty() {
-                                        member
-                                            .remove_roles(&ctx.http, &removeable_roles)
-                                            .await
-                                            .unwrap();
-                                    }
-                                }
-
-                                assign_roles(
-                                    &mci,
-                                    ctx,
-                                    role_choices,
-                                    &mut member,
-                                    &member_role,
-                                )
-                                .await;
                                 break;
                             }
                             _ => {}
@@ -1194,7 +1196,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 fn welcome_all() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Don't wanna miss a thing, eh?")
-    .push.line("Get ready to unlock the whole potential of the server.
+    .push_line("Get ready to unlock the whole potential of the server.
 
     👇")
     .push_line("")
