@@ -236,8 +236,7 @@ async fn assign_roles(
     ctx: &Context,
     role_choices: Vec<String>,
     member: &mut Member,
-    temp_role: &Role,
-    member_role: &Role,
+    member_role: &Role
 ) {
     if role_choices.len() > 1 || !role_choices.iter().any(|x| x == "none") {
         // Is bigger than a single choice or doesnt contain none
@@ -255,10 +254,6 @@ async fn assign_roles(
         db.set_user_roles(mci.user.id, role_ids).await.unwrap();
     }
 
-    // Remove the temp role from user
-    if member.roles.iter().any(|x| x == &temp_role.id) {
-        member.remove_role(&ctx.http, temp_role.id).await.unwrap();
-    }
     // Add member role if missing
     if !member.roles.iter().any(|x| x == &member_role.id) {
         member.add_role(&ctx.http, member_role.id).await.unwrap();
@@ -358,7 +353,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             value: "Speculation",
                             description: "Markets, altcoins and degens",
                             label: "Speculation/Degen Stuff",
-                            display_emoji: "🏛️",
+                            display_emoji: "🦍",
                         },
                         SelectMenuSpec {
                             value: "AllCategories",
@@ -372,25 +367,25 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                         SelectMenuSpec {
                             value: "Found: FromFriend",
                             label: "Friend or colleague",
-                            description: "A friend or colleague of mine introduced IOTA/Shimmer to me",
+                            description: "A friend or colleague of mine introduced IOTA & Shimmer to me",
                             display_emoji: "🫂",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromGoogle",
-                            label: "Google",
-                            description: "I found IOTA/Shimmer from a Google search",
+                            value: "Found: FromSeachEngine",
+                            label: "Search Engien",
+                            description: "I found IOTA & Shimmer through a search engine",
                             display_emoji: "🔎",
                         },
                         SelectMenuSpec {
                             value: "Found: FromYouTube",
                             label: "YouTube",
-                            description: "Saw IOTA/Shimmer on a Youtube Video",
+                            description: "Saw IOTA & Shimmer in a Youtube Video",
                             display_emoji: "📺",
                         },
                         SelectMenuSpec {
                             value: "Found: FromTwitter",
                             label: "Twitter",
-                            description: "Saw people talking about IOTA/Shimmer on a Tweet",
+                            description: "Saw people talking about IOTA & Shimmer on a Tweet",
                             display_emoji: "🐦",
                         },
                         SelectMenuSpec {
@@ -399,35 +394,32 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             description: "Found on CoinMarketCap/CoinGecko",
                             display_emoji: "✨",
                         },
+                        SelectMenuSpec {
+                            value: "Found: FromMeetup",
+                            label: "Event",
+                            description: "Participated in an IOTA & Shimmer event (Meetup, etc...)",
+                            display_emoji: "🔗",                        
                     ]);
 
-                    //for prog_role in [
-                    //    "Bash", "C", "CPP", "CSharp", "Docker", "Go", "Haskell", "Java", "Js",
-                    //    "Kotlin", "Lua", "Nim", "Nix", "Node", "Perl", "Php", "Python", "Ruby",
-                    //    "Rust",
-                    //]
-                    //.iter()
-                    //{
-                    //    additional_roles.push(SelectMenuSpec {
-                    //        label: prog_role,
-                    //        description: "Discussions",
-                    //        display_emoji: "📜",
-                    //        value: prog_role,
-                    //    });
-                    //}
                     let mut role_choices: Vec<String> = Vec::new();
                     let mut join_reason = String::new();
+
+                    // Get user and check if user already went threw onboarding once
+                    let mut member = mci.member.clone().unwrap();
+                    let member_role = get_role(&mci, ctx, "Onboarded").await;
+                    
+                    let never_introduced = !member.roles.iter().any(|x| x == &member_role.id);
 
                     mci.create_interaction_response(&ctx.http, |r| {
                     r.kind(InteractionResponseType::ChannelMessageWithSource);
                     r.interaction_response_data(|d| {
                         d.content(
-                            "**[1/4]:** Which additional channels would you like to have access to?",
+                            "**[1/4]:** Which content would you like to have access to?",
                         );
                         d.components(|c| {
                             c.create_action_row(|a| {
                                 a.create_select_menu(|s| {
-                                    s.placeholder("Select channels (Optional)");
+                                    s.placeholder("Select your interest(s)");
                                     s.options(|o| {
 										for spec in &additional_roles {
 											o.create_option(|opt| {
@@ -439,7 +431,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 										}
                                         o.create_option(|opt| {
                                             opt.label("[Skip] I don't want any!")
-                                                .description("Nopes, I ain't need more.")
+                                                .description("Nope, I ain't need more.")
                                                 .emoji(ReactionType::Unicode("⏭".to_string()))
                                                 .value("none");
                                             opt
@@ -473,7 +465,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             "channel_choice" => {
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d|{
-										d.content("**[2/4]:** Would you like to get notified for announcements and community events?");
+										d.content("**[2/4]:** Would you like to get notified for community events?");
 										d.components(|c| {
 											c.create_action_row(|a| {
 												a.create_button(|b|{
@@ -508,13 +500,13 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 													b.custom_id("hangout")
 												});
 												a.create_button(|b|{
-													b.label("To get help with IOTA/Shimmer");
+													b.label("To get help with IOTA & Shimmer");
 													b.style(ButtonStyle::Secondary);
 													b.emoji(ReactionType::Unicode("✌️".to_string()));
 													b.custom_id("gitpodio_help")
 												});
 												a.create_button(|b|{
-													b.label("To develop on IOTA/Shimmer");
+													b.label("To develop on IOTA & Shimmer");
 													b.style(ButtonStyle::Secondary);
 													b.emoji(ReactionType::Unicode("🏡".to_string()));
 													b.custom_id("selfhosted_help")
@@ -547,39 +539,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 // Save join reason
                                 join_reason.push_str(interaction.data.custom_id.as_str());
 
-                                let mut member = mci.member.clone().unwrap();
-                                let member_role = get_role(&mci, ctx, "Member").await;
-                                let never_introduced = {
-                                    let mut status = true;
-                                    if let Some(roles) = member.roles(&ctx.cache) {
-                                        let gitpodder_role =
-                                            get_role(&mci, ctx, "Gitpodders").await;
-                                        status = !roles
-                                            .into_iter()
-                                            .any(|x| x == member_role || x == gitpodder_role);
-                                    }
-                                    if status {
-                                        let mut count = 0;
-                                        if let Ok(intro_msgs) = &ctx
-                                            .http
-                                            .get_messages(*INTRODUCTION_CHANNEL.as_u64(), "")
-                                            .await
-                                        {
-                                            intro_msgs.iter().for_each(|x| {
-                                                if x.author == interaction.user {
-                                                    count += 1;
-                                                }
-                                            });
-                                        }
-
-                                        status = count < 1;
-                                    }
-                                    status
-                                };
-
                                 let followup = interaction
                                     .create_followup_message(&ctx.http, |d| {
-                                        d.content("**[4/4]:** How did you find Gitpod?");
+                                        d.content("**[4/4]:** How did you find IOTA & Shimmer?");
                                         d.components(|c| {
                                             c.create_action_row(|a| {
                                                 a.create_select_menu(|s| {
@@ -619,24 +581,22 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     .await
                                     .unwrap();
 
-                                let temp_role = get_role(&mci, ctx, "Temp").await;
                                 let followup_results = match followup
                                     .await_component_interaction(&ctx)
                                     .timeout(Duration::from_secs(60 * 5))
                                     .await
                                 {
                                     Some(ci) => {
-                                        member.add_role(&ctx.http, temp_role.id).await.unwrap();
                                         let final_msg = {
                                             if never_introduced {
                                                 MessageBuilder::new()
 												.push_line(format!(
-													"Thank you {}! To unlock the server, drop by {} :wave:",
+													"Thank you {}! If you'd like to get more introduction info, drop by {} and say Hi :)",
 													interaction.user.mention(),
 													INTRODUCTION_CHANNEL.mention()
 												))
 												.push_line("\nWe’d love to get to know you better and hear about:")
-                                                .push_quote_line("🌈 your favourite IOTA/Shimmer feature")
+                                                .push_quote_line("🌈 your favourite IOTA & Shimmer feature")
 												.push_quote_line("🔧 what you’re working on!").build()
                                             } else {
                                                 "Awesome, your server profile will be updated now!"
@@ -734,7 +694,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 
                                             let mut prepared_msg = MessageBuilder::new();
                                             prepared_msg.push_line(format!(
-                                                "Welcome to the IOTA/Shimmer community {} 🙌\n",
+                                                "Welcome to the IOTA & Shimmer community {} 🙌\n",
                                                 &msg.author.mention()
                                             ));
                                             match join_reason.as_str() {
@@ -759,17 +719,50 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                 _ => {}
                                             }
                                             prepared_msg.push_bold_line("Here are some channels that you should check out:")
-											.push_quote_line(format!("• {} - for anything IOTA/Shimmer related", &general_channel.mention()))
+											.push_quote_line(format!("• {} - for anything IOTA & Shimmer related", &general_channel.mention()))
 											.push_quote_line(format!("• {} - for any random discussions ☕️", &offtopic_channel.mention()))
 											.push_quote_line(format!("• {} - have a question or need help? This is the place to ask! ❓\n", &questions_channel.mention()))
 											.push_line("…And there’s more! Take your time to explore :)\n")
-											.push_bold_line("Feel free to check out the following pages to learn more about IOTA/Shimmer:")
-											.push_quote_line("• https://www.iota.org")
-                                            .push_quote_line("• https://shimmer.network")
-											.push_quote_line("• https://wiki.iota.org");
+											.push_bold_line("Feel free to check out the following pages to learn more about IOTA & Shimmer:")
+											.push_quote_line("• <https://www.iota.org>")
+                                            .push_quote_line("• <https://shimmer.network>")
+											.push_quote_line("• <https://wiki.iota.org>");
+
+                                            let mut extra_msg = MessageBuilder::new();
+                                            if role_choices.contains(&additional_roles[6].value.to_string()) {
+                                                extra_msg.push(welcome_all());
+                                            }
+                                            else {
+                                                if role_choices.contains(&additional_roles[0].value.to_string()) {
+                                                    extra_msg.push(welcome_newcomer());
+                                                }
+                                                if role_choices.contains(&additional_roles[1].value.to_string()) {
+                                                    extra_msg.push(welcome_buidler());
+                                                }
+                                                if role_choices.contains(&additional_roles[2].value.to_string()) {
+                                                    extra_msg.push(welcome_eary_adopter());
+                                                }
+                                                if role_choices.contains(&additional_roles[3].value.to_string()) {
+                                                    extra_msg.push(welcome_governance());
+                                                }
+                                                if role_choices.contains(&additional_roles[4].value.to_string()) {
+                                                    extra_msg.push(welcome_researcher());
+                                                }
+                                                if role_choices.contains(&additional_roles[5].value.to_string()) {
+                                                    extra_msg.push(welcome_speculator());
+                                                }
+                                            }
+
                                             let mut thread_msg = thread
                                                 .send_message(&ctx.http, |t| {
                                                     t.content(prepared_msg)
+                                                })
+                                                .await
+                                                .unwrap();
+                                            thread_msg.suppress_embeds(&ctx.http).await.unwrap();
+                                            thread_msg = thread
+                                                .send_message(&ctx.http, |t| {
+                                                    t.content(extra_msg)
                                                 })
                                                 .await
                                                 .unwrap();
@@ -825,7 +818,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     ctx,
                                     role_choices,
                                     &mut member,
-                                    &temp_role,
                                     &member_role,
                                 )
                                 .await;
@@ -1197,4 +1189,86 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
         }
         _ => (),
     }
+}
+
+fn welcome_all() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("Don't wanna miss a thing, eh?")
+    .push.line("Get ready to unlock the whole potential of the server.
+
+    👇")
+    .push_line("")
+
+    .push(welcome_newcomer())
+    .push(welcome_buidler())
+    .push(welcome_eary_adopter())
+    .push(welcome_governance())
+    .push(welcome_researcher())
+    .push(welcome_speculator());
+
+    msg
+}
+
+fn welcome_newcomer() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("Hello and welcome to your community")
+    .push_line("- Browse the channels and feel free to ask questions to learn more.
+    - Not all activitiy is visible right now. Get dedicated roles to unlock more channels in <#884705920028930068>.")
+    .push_line("");
+
+    msg
+}
+
+fn welcome_buidler() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("Ready to buidl?")
+    .push_line("We suggest to start with the wiki at <https://wiki.iota.org>.
+    - Currently you may be interested in Stardust, the first iteration of the Shimmer innovation network with support for a multi asset DLT. <https://wiki.iota.org/introduction/develop/welcome>.
+    - For a quick start have a look at our tutorial section: <https://wiki.iota.org/tutorials>.")
+    .push_line("");
+
+    msg
+}
+
+fn welcome_eary_adopter() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("The early bird catches the worm")
+    .push_line("- Hangout with the community, explore and try out upcoming dApps and opportunities.
+    - Explore ecosystem projects: <https://shimmer.network/ecosystem>
+    - Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo https://github.com/iotaledger/tips
+     - Already heared about our Touchpoint initiative to build, launch and scale the next generation of dApps and infrastructure? Learn more: <https://assembly.sc/touchpoint>")
+    .push_line("");
+    
+    msg
+}
+
+fn welcome_governance() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("Ready to take matter in your own hands?")
+    .push_line("The community is empowered to take part in governance. Start participating in key decisions at our governance forum <https://govern.iota.org>")
+    .push_line("");
+    
+    msg
+}
+
+fn welcome_researcher() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("We build on the shoulders of giants")
+    .push_line("Research is a key element to the project.
+    - Have a look at our research papers https://wiki.iota.org/research/research-papers
+    - Keep yourself up-to-date with the latest coordicide specs https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface
+    And join the discussion in <#970953102503071780>")
+    .push_line("");
+    
+    msg
+}
+
+fn welcome_speculator() -> MessageBuilder {
+    let mut msg = MessageBuilder::new();
+    msg.push_bold_line("Ready to ape in?")
+    .push_line("- Take off your shoes and join <#970953101894889530>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)
+    - Discuss other projects eloquently in <#970953101894889531>")
+    .push_line("");
+    
+    msg
 }
