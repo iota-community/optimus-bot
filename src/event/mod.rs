@@ -67,7 +67,7 @@ const GETTING_STARTED_CHANNEL: ChannelId = if cfg!(debug_assertions) {
 const INTRODUCTION_CHANNEL: ChannelId = if cfg!(debug_assertions) {
     ChannelId(947769443516284939)
 } else {
-    ChannelId(993490629789225030)
+    ChannelId(1002520215550185532)
 };
 
 pub struct Listener {
