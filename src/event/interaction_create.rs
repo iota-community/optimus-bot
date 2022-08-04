@@ -483,10 +483,10 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 										d.components(|c| {
 											c.create_action_row(|a| {
 												a.create_button(|b|{
-													b.label("Yes!").custom_id("subscribed").style(ButtonStyle::Success)
+													b.label("Yes!").custom_id("events").style(ButtonStyle::Success)
 												});
 												a.create_button(|b|{
-													b.label("No, thank you!").custom_id("not_subscribed").style(ButtonStyle::Danger)
+													b.label("No, thank you!").custom_id("no_events").style(ButtonStyle::Danger)
 												});
 												a
 											})
@@ -504,7 +504,42 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     .iter()
                                     .for_each(|x| role_choices.push(x.to_string()));
                             }
-                            "subscribed" | "not_subscribed" => {
+                            "events" | "no_events" => {
+                                interaction.create_interaction_response(&ctx.http, |r| {
+									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d|{
+										d.content(
+                                            format!("**[{}/{}]:** Would you like to get notified for polls and surveys?", question_index, question_max)
+                                        );
+										d.components(|c| {
+											c.create_action_row(|a| {
+												a.create_button(|b|{
+													b.label("Yes!").custom_id("polls").style(ButtonStyle::Success)
+												});
+												a.create_button(|b|{
+													b.label("No, thank you!").custom_id("no_polls").style(ButtonStyle::Danger)
+												});
+												a
+											})
+										});
+										d
+									})
+								}).await.unwrap();
+
+                                question_index = question_index + 1;
+
+                                // Save the choices of last interaction
+                                let event_role = SelectMenuSpec {
+                                    label: "Events",
+                                    description: "Subscribed to event pings",
+                                    display_emoji: "",
+                                    value: "Events",
+                                };
+                                if interaction.data.custom_id == "events" {
+                                    role_choices.push(event_role.value.to_string());
+                                }
+                                additional_roles.push(event_role);
+                            }
+                            "polls" | "no_polls" => {
                                 if !never_introduced {
                                     interaction.create_interaction_response(&ctx.http, |r| {
 									    r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
@@ -514,22 +549,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									    })
 								    }).await.unwrap();
 
-                                    let final_msg = {
-                                        if never_introduced {
-                                            MessageBuilder::new()
-                                            .push_line(format!(
-                                                "Thank you {}! If you'd like to get more introduction info, drop by {} and say Hi :)",
-                                                interaction.user.mention(),
-                                                INTRODUCTION_CHANNEL.mention()
-                                            ))
-                                            .push_line("\nWe’d love to get to know you better and hear about:")
-                                            .push_quote_line("🌈 your favourite IOTA & Shimmer feature")
-                                            .push_quote_line("🔧 what you’re working on!").build()
-                                        } else {
-                                            "Awesome, your server profile will be updated now!"
-                                                .to_owned()
-                                        }
-                                    };
+                                    let final_msg = "Awesome, your server profile will be updated now!".to_owned();
 
                                     interaction
                                     .create_followup_message(&ctx.http, |d| {
@@ -538,6 +558,18 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     })
                                     .await
                                     .unwrap();
+
+                                    // Save the choices of last interaction
+                                    let polls_role = SelectMenuSpec {
+                                        label: "Polls",
+                                        description: "Subscribed to event pings",
+                                        display_emoji: "",
+                                        value: "Polls",
+                                    };
+                                    if interaction.data.custom_id == "polls" {
+                                        role_choices.push(polls_role.value.to_string());
+                                    }
+                                    additional_roles.push(polls_role);
 
                                     // Remove old roles
                                     if let Some(roles) = member.roles(&ctx.cache) {
@@ -598,13 +630,13 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 													b.label("To get help with IOTA & Shimmer");
 													b.style(ButtonStyle::Secondary);
 													b.emoji(ReactionType::Unicode("✌️".to_string()));
-													b.custom_id("gitpodio_help")
+													b.custom_id("help")
 												});
 												a.create_button(|b|{
 													b.label("To develop on IOTA & Shimmer");
 													b.style(ButtonStyle::Secondary);
 													b.emoji(ReactionType::Unicode("🏡".to_string()));
-													b.custom_id("selfhosted_help")
+													b.custom_id("develop")
 												});
 												a
 											})
@@ -615,18 +647,18 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 question_index = question_index + 1;
 
                                 // Save the choices of last interaction
-                                let subscribed_role = SelectMenuSpec {
-                                    label: "Events",
+                                let polls_role = SelectMenuSpec {
+                                    label: "Polls",
                                     description: "Subscribed to event pings",
                                     display_emoji: "",
-                                    value: "Events",
+                                    value: "Polls",
                                 };
-                                if interaction.data.custom_id == "subscribed" {
-                                    role_choices.push(subscribed_role.value.to_string());
+                                if interaction.data.custom_id == "polls" {
+                                    role_choices.push(polls_role.value.to_string());
                                 }
-                                additional_roles.push(subscribed_role);
+                                additional_roles.push(polls_role);
                             }
-                            "hangout" | "gitpodio_help" | "selfhosted_help" => {
+                            "hangout" | "help" | "develop" => {
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
 										d.content(
@@ -827,27 +859,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                 "Welcome to the IOTA & Shimmer community {} 🙌\n",
                                                 &msg.author.mention()
                                             ));
-                                            match join_reason.as_str() {
-                                                "gitpodio_help" => {
-                                                    prepared_msg.push_line(
-														format!("**You mentioned that** you need help with Gitpod.io, please ask in {}\n",
-																	&questions_channel.mention())
-													);
-                                                }
-                                                "selfhosted_help" => {
-                                                    let selfhosted_role =
-                                                        get_role(&mci, ctx, "SelfHosted").await;
-                                                    member
-                                                        .add_role(&ctx.http, selfhosted_role.id)
-                                                        .await
-                                                        .unwrap();
-                                                    prepared_msg.push_line(
-														format!("**You mentioned that** you need help with selfhosted, please ask in {}\n",
-																	&selfhosted_questions_channel.mention())
-													);
-                                                }
-                                                _ => {}
-                                            }
+
                                             prepared_msg.push_bold_line("Here are some channels that you should check out:")
 											.push_quote_line(format!("• {} - for anything IOTA & Shimmer related", &general_channel.mention()))
 											.push_quote_line(format!("• {} - for any random discussions ☕️", &offtopic_channel.mention()))
