@@ -40,8 +40,8 @@ struct SelectMenuSpec<'a> {
     description: &'a str,
 }
 
-const SELF_HOSTED_TEXT: &str = "self-hosted-questions";
-const SELF_HOSTED_KUBECTL_COMMAND_PLACEHOLDER: &str = "# Run: kubectl get pods -n <namespace>";
+const NOT_INTRODUCED_QUESTION_COUNT: u8 = 5;
+const QUESTION_COUNT: u8 = 3;
 
 async fn safe_text(_ctx: &Context, _input: &String) -> String {
     content_safe(
@@ -241,13 +241,17 @@ async fn assign_roles(
     if role_choices.len() > 1 || !role_choices.iter().any(|x| x == "none") {
         // Is bigger than a single choice or doesnt contain none
 
+        let test = member.roles.clone();
+
         let mut role_ids: Vec<RoleId> = Vec::new();
         for role_name in role_choices {
             if role_name == "none" {
                 continue;
             }
             let role = get_role(mci, ctx, role_name.as_str()).await;
-            role_ids.push(role.id);
+            if !test.contains(&role.id) {
+                role_ids.push(role.id);
+            }
         }
         member.add_roles(&ctx.http, &role_ids).await.unwrap();
         let db = &ctx.get_db().await;
@@ -408,14 +412,19 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                     // Get user and check if user already went threw onboarding once
                     let mut member = mci.member.clone().unwrap();
                     let member_role = get_role(&mci, ctx, "Onboarded").await;
-                    
                     let never_introduced = !member.roles.iter().any(|x| x == &member_role.id);
+
+                    let mut question_index = 1;
+                    let question_max = match never_introduced {
+                        true => NOT_INTRODUCED_QUESTION_COUNT,
+                        false => QUESTION_COUNT
+                    };
 
                     mci.create_interaction_response(&ctx.http, |r| {
                     r.kind(InteractionResponseType::ChannelMessageWithSource);
                     r.interaction_response_data(|d| {
                         d.content(
-                            "**[1/4]:** Which content would you like to have access to?",
+                            format!("**[{}/{}]:** Which content would you like to have access to?", question_index, question_max),
                         );
                         d.components(|c| {
                             c.create_action_row(|a| {
@@ -453,6 +462,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                 .await
                 .unwrap();
 
+                question_index = question_index + 1;
+
                     let mut interactions = mci
                         .get_interaction_response(&ctx.http)
                         .await
@@ -466,7 +477,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             "channel_choice" => {
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d|{
-										d.content("**[2/4]:** Would you like to get notified for community events?");
+										d.content(
+                                            format!("**[{}/{}]:** Would you like to get notified for community events?", question_index, question_max)
+                                        );
 										d.components(|c| {
 											c.create_action_row(|a| {
 												a.create_button(|b|{
@@ -482,6 +495,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									})
 								}).await.unwrap();
 
+                                question_index = question_index + 1;
+
                                 // Save the choices of last interaction
                                 interaction
                                     .data
@@ -490,9 +505,88 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     .for_each(|x| role_choices.push(x.to_string()));
                             }
                             "subscribed" | "not_subscribed" => {
+                                if !never_introduced {
+                                    interaction.create_interaction_response(&ctx.http, |r| {
+									    r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
+										    d.content(
+                                                format!("**[{}/{}]**: You have personalized the server, congrats!", question_index, question_max)
+                                            ).components(|c|c)
+									    })
+								    }).await.unwrap();
+
+                                    let final_msg = {
+                                        if never_introduced {
+                                            MessageBuilder::new()
+                                            .push_line(format!(
+                                                "Thank you {}! If you'd like to get more introduction info, drop by {} and say Hi :)",
+                                                interaction.user.mention(),
+                                                INTRODUCTION_CHANNEL.mention()
+                                            ))
+                                            .push_line("\nWe’d love to get to know you better and hear about:")
+                                            .push_quote_line("🌈 your favourite IOTA & Shimmer feature")
+                                            .push_quote_line("🔧 what you’re working on!").build()
+                                        } else {
+                                            "Awesome, your server profile will be updated now!"
+                                                .to_owned()
+                                        }
+                                    };
+
+                                    interaction
+                                    .create_followup_message(&ctx.http, |d| {
+                                        d.content(final_msg).components(|c| c);
+                                        d.flags(MessageFlags::EPHEMERAL)
+                                    })
+                                    .await
+                                    .unwrap();
+
+                                    // Remove old roles
+                                    if let Some(roles) = member.roles(&ctx.cache) {
+                                        // Remove all assignable roles first
+                                        let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
+                                        all_assignable_roles.append(&mut additional_roles.clone());
+                                        //all_assignable_roles.append(&mut poll_entries);
+                                        let mut removeable_roles: Vec<RoleId> = Vec::new();
+
+                                        let subscribed_role = SelectMenuSpec {
+                                            label: "Events",
+                                            description: "Subscribed to event pings",
+                                            display_emoji: "",
+                                            value: "Events",
+                                        };
+
+                                        all_assignable_roles.push(subscribed_role);
+
+                                        for role in roles {
+                                            if all_assignable_roles.iter().any(|x| x.value == role.name)
+                                            {
+                                                removeable_roles.push(role.id);
+                                            }
+                                        }
+                                        if !removeable_roles.is_empty() {
+                                            member
+                                                .remove_roles(&ctx.http, &removeable_roles)
+                                                .await
+                                                .unwrap();
+                                        }
+                                    }
+
+                                    assign_roles(
+                                        &mci,
+                                        ctx,
+                                        &role_choices,
+                                        &mut member,
+                                        &member_role,
+                                    )
+                                    .await;
+
+                                    break;
+                                }
+
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
-										d.content("**[3/4]:** Why did you join our community?").components(|c| {
+										d.content(
+                                            format!("**[{}/{}]:** Why did you join our community?", question_index, question_max)
+                                        ).components(|c| {
 											c.create_action_row(|a| {
 												a.create_button(|b|{
 													b.label("To hangout with others");
@@ -518,6 +612,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									})
 								}).await.unwrap();
 
+                                question_index = question_index + 1;
+
                                 // Save the choices of last interaction
                                 let subscribed_role = SelectMenuSpec {
                                     label: "Events",
@@ -533,7 +629,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             "hangout" | "gitpodio_help" | "selfhosted_help" => {
                                 interaction.create_interaction_response(&ctx.http, |r| {
 									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
-										d.content("**[3/4]**: You have personalized the server, congrats!").components(|c|c)
+										d.content(
+                                            format!("**[{}/{}]**: You have personalized the server, congrats!", question_index, question_max)
+                                        ).components(|c|c)
 									})
 								}).await.unwrap();
 
@@ -542,7 +640,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 
                                 let followup = interaction
                                     .create_followup_message(&ctx.http, |d| {
-                                        d.content("**[4/4]:** How did you find IOTA & Shimmer?");
+                                        d.content(
+                                            format!("**[{}/{}]:** How did you find IOTA & Shimmer?", question_index, question_max)
+                                        );
                                         d.components(|c| {
                                             c.create_action_row(|a| {
                                                 a.create_select_menu(|s| {
@@ -616,15 +716,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     }
                                     None => return,
                                 };
-
-                                // if let Some(interaction) = interaction
-                                //     .get_interaction_response(&ctx.http)
-                                //     .await
-                                //     .unwrap()
-                                //     .await_component_interaction(&ctx)
-                                //     .timeout(Duration::from_secs(60 * 5))
-                                //     .await
-                                // {
 
                                 // save the found from data
                                 followup_results
