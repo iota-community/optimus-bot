@@ -571,12 +571,11 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     }
                                     additional_roles.push(polls_role);
 
-                                    // Remove old roles
+                                    // Remove all roles which can be updated by  second Introduction run
                                     if let Some(roles) = member.roles(&ctx.cache) {
                                         // Remove all assignable roles first
                                         let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
                                         all_assignable_roles.append(&mut additional_roles.clone());
-                                        //all_assignable_roles.append(&mut poll_entries);
                                         let mut removeable_roles: Vec<RoleId> = Vec::new();
 
                                         let subscribed_role = SelectMenuSpec {
