@@ -30,6 +30,12 @@ impl Db {
         sqlx::query(&q).execute(&self.sqlitedb).await?;
         Ok(())
     }
+
+    pub async fn increment_found_from(&self, data_name: &str) -> Result<()> {
+        let q = format!("update found_from set {} = {} + 1", data_name, data_name);
+        sqlx::query(&q).execute(&self.sqlitedb).await?;
+        Ok(())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -375,39 +381,39 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                         },
                     ]);
 
-                    let mut poll_entries: Vec<SelectMenuSpec> = Vec::from([
+                    let poll_entries: Vec<SelectMenuSpec> = Vec::from([
                         SelectMenuSpec {
-                            value: "Found: FromFriend",
+                            value: "friend",
                             label: "Friend or colleague",
                             description: "A friend or colleague of mine introduced IOTA & Shimmer to me",
                             display_emoji: "🫂",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromSeachEngine",
+                            value: "search_engine",
                             label: "Search Engine",
                             description: "I found IOTA & Shimmer through a search engine",
                             display_emoji: "🔎",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromYouTube",
+                            value: "youtube",
                             label: "YouTube",
                             description: "Saw IOTA & Shimmer in a Youtube Video",
                             display_emoji: "📺",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromTwitter",
+                            value: "twitter",
                             label: "Twitter",
                             description: "Saw people talking about IOTA & Shimmer on a Tweet",
                             display_emoji: "🐦",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromMarketCap",
+                            value: "market_cap",
                             label: "MarketCap",
                             description: "Found on CoinMarketCap/CoinGecko",
                             display_emoji: "✨",
                         },
                         SelectMenuSpec {
-                            value: "Found: FromMeetup",
+                            value: "meetup",
                             label: "Event",
                             description: "Participated in an IOTA & Shimmer event (Meetup, etc...)",
                             display_emoji: "🔗", 
@@ -753,18 +759,18 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 };
 
                                 // save the found from data
-                                followup_results
-                                    .data
-                                    .values
-                                    .iter()
-                                    .for_each(|x| role_choices.push(x.to_string()));
+                                let db = ctx.get_db().await;
+
+                                for result in followup_results.data.values.iter() {
+                                    println!("{}", &result);
+                                    db.increment_found_from(&result).await;
+                                }
 
                                 // Remove old roles
                                 if let Some(roles) = member.roles(&ctx.cache) {
                                     // Remove all assignable roles first
                                     let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
                                     all_assignable_roles.append(&mut additional_roles.clone());
-                                    all_assignable_roles.append(&mut poll_entries);
                                     let mut removeable_roles: Vec<RoleId> = Vec::new();
 
                                     for role in roles {
@@ -800,7 +806,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     // Remove all assignable roles first
                                     let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
                                     all_assignable_roles.append(&mut additional_roles.clone());
-                                    all_assignable_roles.append(&mut poll_entries);
                                     let mut removeable_roles: Vec<RoleId> = Vec::new();
 
                                     for role in roles {
