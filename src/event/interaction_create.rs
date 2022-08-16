@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use super::*;
-use crate::db::ClientContextExt;
+use crate::db::{ClientContextExt, Db};
 use substr::StringUtils;
 
-use meilisearch_sdk::{client::Client as MeiliClient, settings::Settings};
+use meilisearch_sdk::{client::Client as MeiliClient, settings::Settings, errors::Error};
 use serde::{Deserialize, Serialize};
 
 use serenity::{
@@ -23,6 +23,14 @@ use serenity::{
 };
 
 use urlencoding::encode;
+
+impl Db {
+    pub async fn increment_join_reason(&self, data_name: &str) -> Result<()> {
+        let q = format!("update join_reason set {} = {} + 1", data_name, data_name);
+        sqlx::query(&q).execute(&self.sqlitedb).await?;
+        Ok(())
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Thread {
@@ -407,7 +415,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                     ]);
 
                     let mut role_choices: Vec<String> = Vec::new();
-                    let mut join_reason = String::new();
 
                     // Get user and check if user already went threw onboarding once
                     let mut member = mci.member.clone().unwrap();
@@ -666,9 +673,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									})
 								}).await.unwrap();
 
-                                // Save join reason
-                                join_reason.push_str(interaction.data.custom_id.as_str());
-
                                 let followup = interaction
                                     .create_followup_message(&ctx.http, |d| {
                                         d.content(
@@ -777,13 +781,11 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     }
                                 }
 
-                                assign_roles(
-                                    &mci,
-                                    ctx,
-                                    &role_choices,
-                                    &mut member,
-                                    &member_role,
-                                )
+                                let db = &ctx.get_db().await;
+                                db.increment_join_reason(interaction.data.custom_id.as_str())
+                                    .await;
+
+                                assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
                                 .await;
 
                                 // save the found from data
@@ -815,13 +817,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     }
                                 }
 
-                                assign_roles(
-                                    &mci,
-                                    ctx,
-                                    &role_choices,
-                                    &mut member,
-                                    &member_role,
-                                )
+                                assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
                                 .await;
 
                                 if never_introduced {
