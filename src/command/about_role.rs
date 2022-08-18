@@ -2,7 +2,7 @@ use super::*;
 
 #[command]
 // Limits the usage of this command to roles named:
-#[allowed_roles("mods", "ultimate neko")]
+#[allowed_roles("DevEx", "Discord Dancer")]
 async fn about_role(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let potential_role_name = args.rest();
 
