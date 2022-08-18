@@ -20,8 +20,8 @@ You wanna contribute!? That sounds awesome! Thank you for taking the step to con
 - Inside your bot page, click on 🧩 `Bot` from the left sidebar and then `Add Bot` button
     - In the same page, toggle on the following options: `Presence Intent`, `Server Members Intent` and `Message Content Intent`
 - Go to **OAuth2 > URL Generator** from your left sidebar
-    - Tick `Scopes: bot, application.commands` and `Bot permissions: Adminstrator`. It should look like below:
-    ![OAuth2 example](/.assets/oauth2_example.png)
+    - Tick `Scopes: bot, application.commands` and different bot permissions. It should look like below:
+    ![OAuth2 example](https://cdn.discordapp.com/attachments/765258101879865344/993458678168551485/unknown.png)
     - Scroll to the bottom of this page and copy paste the **GENERATED-URL** into your browser tab to add the bot to a discord server. I recommend creating a new Discord server for bot development perposes.
 
 > Running the BOT from Gitpod
