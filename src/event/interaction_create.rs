@@ -294,7 +294,6 @@ async fn show_issue_form(mci: &MessageComponentInteraction, ctx: &Context) {
         }
     };
 
-    let channel_name = mci.channel_id.name(&ctx.cache).await.unwrap();
     mci.create_interaction_response(&ctx, |r| {
         r.kind(InteractionResponseType::Modal);
         r.interaction_response_data(|d| {
@@ -479,7 +478,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                     .await
                     .unwrap();
 
-                    question_index = question_index + 1;
+                    question_index += 1;
 
                     let mut interactions = mci
                         .get_interaction_response(&ctx.http)
@@ -512,7 +511,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									})
 								}).await.unwrap();
 
-                                question_index = question_index + 1;
+                                question_index += 1;
 
                                 // Save the choices of last interaction
                                 interaction
@@ -542,7 +541,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									})
 								}).await.unwrap();
 
-                                question_index = question_index + 1;
+                                question_index += 1;
 
                                 // Save the choices of last interaction
                                 let event_role = SelectMenuSpec {
@@ -679,7 +678,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     .await
                                     .unwrap();
 
-                                question_index = question_index + 1;
+                                question_index += 1;
 
                                 // Save the choices of last interaction
                                 let polls_role = SelectMenuSpec {
@@ -786,8 +785,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 let db = ctx.get_db().await;
 
                                 for result in followup_results.data.values.iter() {
-                                    println!("{}", &result);
-                                    db.increment_found_from(&result).await;
+                                    // Unwraping here is fine as the program would already fail earlier if the db isn't online
+                                    db.increment_found_from(result).await.unwrap();
                                 }
 
                                 // Remove old roles
@@ -812,8 +811,10 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 }
 
                                 let db = &ctx.get_db().await;
+                                // Unwraping here is fine as the program would already fail earlier if the db isn't online
                                 db.increment_join_reason(interaction.data.custom_id.as_str())
-                                    .await;
+                                    .await
+                                    .unwrap();
 
                                 assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
                                     .await;
@@ -908,13 +909,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                 db.get_question_channels().await.unwrap();
                                             let questions_channel =
                                                 questions_channel.into_iter().next().unwrap().id;
-
-                                            let selfhosted_questions_channel =
-                                                if cfg!(debug_assertions) {
-                                                    ChannelId(947769443793141761)
-                                                } else {
-                                                    ChannelId(879915120510267412)
-                                                };
 
                                             let mut prepared_msg = MessageBuilder::new();
                                             prepared_msg.push_line(format!(
@@ -1157,7 +1151,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
             .ok();
 
             let user_name = &mci.user.name;
-            let channel_name = &mci.channel_id.name(&ctx.cache).await.unwrap();
             // let self_avatar = &ctx.cache.current_user().await.face();
             // let self_name = &ctx.cache.current_user().await.name;
             let webhook_get = mci.channel_id.webhooks(&ctx).await.unwrap();
