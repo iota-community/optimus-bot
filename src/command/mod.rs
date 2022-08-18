@@ -8,6 +8,7 @@ mod emoji;
 mod invite;
 mod latency;
 mod math;
+mod statistics;
 // pub mod note;
 mod owner_check;
 mod ping;
@@ -26,6 +27,7 @@ use emoji::*;
 use invite::*;
 use latency::*;
 use math::*;
+use statistics::*;
 // use note::*;
 use owner_check::*;
 use say::*;
@@ -94,7 +96,8 @@ impl TypeMapKey for CommandCounter {
     status,
     invite,
     // some_long_command,
-    config
+    config,
+    statistics
 )]
 struct General;
 
@@ -132,6 +135,12 @@ struct Emoji;
 //     default_role
 // )]
 struct Config;
+
+#[group]
+#[prefix = "statistics"]
+#[description = "Get server statistics"]
+#[summary = "Server statistics"]
+struct Statistics;
 
 #[group]
 // Sets a single prefix for this group.

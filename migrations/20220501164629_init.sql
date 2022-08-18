@@ -24,3 +24,26 @@ CREATE TABLE IF NOT EXISTS message_storage (
 	edit_history TEXT
 
 );
+
+CREATE TABLE IF NOT EXISTS join_reason (
+	hangout INTEGER,
+	help INTEGER,
+	develop INTEGER
+);
+
+INSERT INTO join_reason(hangout,help,develop) 
+SELECT 0,0,0
+WHERE NOT EXISTS (SELECT 1 FROM join_reason);
+
+CREATE TABLE IF NOT EXISTS found_from (
+	friend INTEGER,
+    search_engine INTEGER,
+    youtube INTEGER,
+    twitter INTEGER,
+    market_cap INTEGER,
+    meetup INTEGER
+);
+
+INSERT INTO found_from(friend,search_engine,youtube,twitter,market_cap,meetup) 
+SELECT 0,0,0,0,0,0
+WHERE NOT EXISTS (SELECT 1 FROM found_from);
