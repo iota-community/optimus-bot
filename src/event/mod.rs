@@ -60,14 +60,14 @@ use serenity::{
 // > ‎";
 
 const GETTING_STARTED_CHANNEL: ChannelId = if cfg!(debug_assertions) {
-    ChannelId(947769444380336167)
+    ChannelId(993476747414753370) //debug Discord Server channel ID
 } else {
-    ChannelId(993476747414753370)
+    ChannelId(1006527717476405258) // prod Discord Server channel ID
 };
 const INTRODUCTION_CHANNEL: ChannelId = if cfg!(debug_assertions) {
-    ChannelId(947769443516284939)
+    ChannelId(1002520215550185532) //debug Discord Server channel ID
 } else {
-    ChannelId(1002520215550185532)
+    ChannelId(1002520215550185532) // prod Discord Server channel ID
 };
 
 pub struct Listener {
