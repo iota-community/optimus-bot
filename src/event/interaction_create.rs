@@ -899,11 +899,12 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                             } else {
                                                 ChannelId(970953101894889523)
                                             };
-                                            let offtopic_channel = if cfg!(debug_assertions) {
-                                                ChannelId(947769443793141769)
+                                            let announcement_channel = if cfg!(debug_assertions) {
+                                                ChannelId(970954117524652032)
                                             } else {
-                                                ChannelId(970953101894889529)
+                                                ChannelId(970954117524652032)
                                             };
+
                                             let db = &ctx.get_db().await;
                                             let questions_channel =
                                                 db.get_question_channels().await.unwrap();
@@ -917,8 +918,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                             ));
 
                                             prepared_msg.push_bold_line("Here are some channels that you should check out:")
+											.push_quote_line(format!("• {} - for all the important news and announcements", &announcement_channel.mention()))
 											.push_quote_line(format!("• {} - for anything IOTA & Shimmer related", &general_channel.mention()))
-											.push_quote_line(format!("• {} - for any random discussions ☕️", &offtopic_channel.mention()))
 											.push_quote_line(format!("• {} - have a question or need help? This is the place to ask! ❓\n", &questions_channel.mention()))
 											.push_line("…And there’s more! Take your time to explore :)\n")
 											.push_bold_line("Feel free to check out the following pages to learn more about IOTA & Shimmer:")
