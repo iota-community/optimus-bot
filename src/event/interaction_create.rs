@@ -385,7 +385,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             value: "friend",
                             label: "Friend or colleague",
                             description:
-                                "A friend or colleague of mine introduced IOTA & Shimmer to me",
+                                "A friend or colleague of mine introduced me to IOTA & Shimmer",
                             display_emoji: "🫂",
                         },
                         SelectMenuSpec {
@@ -823,7 +823,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 followup_results
                                     .data
                                     .values
-                                    .iter()
+			    .iter()
                                     .for_each(|x| role_choices.push(x.to_string()));
 
                                 // Remove old roles
@@ -895,14 +895,14 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                             .unwrap();
 
                                             let general_channel = if cfg!(debug_assertions) {
-                                                ChannelId(947769443516284943)
+                                                ChannelId(970953101894889523) //debug Discord Server channel ID
                                             } else {
-                                                ChannelId(970953101894889523)
+                                                ChannelId(397872799483428867) // prod Discord Server channel ID
                                             };
                                             let announcement_channel = if cfg!(debug_assertions) {
-                                                ChannelId(970954117524652032)
+                                                ChannelId(970954117524652032) //debug Discord Server channel ID
                                             } else {
-                                                ChannelId(970954117524652032)
+                                                ChannelId(398069502060789761) // prod Discord Server channel ID
                                             };
 
                                             let db = &ctx.get_db().await;
@@ -1386,7 +1386,7 @@ fn welcome_newcomer() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Hello and welcome to your community")
     .push_line("- Browse the channels and feel free to ask questions to learn more.
-    - Not all activitiy is visible right now. Get dedicated roles to unlock more channels in <#884705920028930068>.")
+    - Not all activitiy is visible right now. Get dedicated roles to unlock more channels in <#884705920028930068>.") // get-your-badges channel
     .push_line("");
 
     msg
@@ -1430,7 +1430,7 @@ fn welcome_researcher() -> MessageBuilder {
     .push_line("Research is a key element to the project.
     - Have a look at our research papers https://wiki.iota.org/research/research-papers
     - Keep yourself up-to-date with the latest coordicide specs https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface
-    And join the discussion in <#970953102503071780>")
+    And join the discussion in <#399035929106579466>") // tanglemath
     .push_line("");
 
     msg
@@ -1439,8 +1439,8 @@ fn welcome_researcher() -> MessageBuilder {
 fn welcome_speculator() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Ready to ape in?")
-    .push_line("- Take off your shoes and join <#970953101894889530>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)
-    - Discuss other projects eloquently in <#970953101894889531>")
+    .push_line("- Take off your shoes and join <#738665041217323068>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)
+    - Discuss other projects eloquently in <#738665060515315842>") //speculation first, altcoins second
     .push_line("");
 
     msg
