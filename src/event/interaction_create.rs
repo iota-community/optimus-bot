@@ -4,7 +4,7 @@ use super::*;
 use crate::db::{ClientContextExt, Db};
 use substr::StringUtils;
 
-use meilisearch_sdk::{client::Client as MeiliClient, settings::Settings, errors::Error};
+use meilisearch_sdk::{client::Client as MeiliClient, settings::Settings};
 use serde::{Deserialize, Serialize};
 
 use serenity::{
@@ -250,7 +250,7 @@ async fn assign_roles(
     ctx: &Context,
     role_choices: &Vec<String>,
     member: &mut Member,
-    member_role: &Role
+    member_role: &Role,
 ) {
     if role_choices.len() > 1 || !role_choices.iter().any(|x| x == "none") {
         // Is bigger than a single choice or doesnt contain none
@@ -385,7 +385,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                         SelectMenuSpec {
                             value: "friend",
                             label: "Friend or colleague",
-                            description: "A friend or colleague of mine introduced IOTA & Shimmer to me",
+                            description:
+                                "A friend or colleague of mine introduced IOTA & Shimmer to me",
                             display_emoji: "🫂",
                         },
                         SelectMenuSpec {
@@ -416,8 +417,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                             value: "meetup",
                             label: "Event",
                             description: "Participated in an IOTA & Shimmer event (Meetup, etc...)",
-                            display_emoji: "🔗", 
-                        }                       
+                            display_emoji: "🔗",
+                        },
                     ]);
 
                     let mut role_choices: Vec<String> = Vec::new();
@@ -430,52 +431,55 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                     let mut question_index = 1;
                     let question_max = match never_introduced {
                         true => NOT_INTRODUCED_QUESTION_COUNT,
-                        false => QUESTION_COUNT
+                        false => QUESTION_COUNT,
                     };
 
                     mci.create_interaction_response(&ctx.http, |r| {
-                    r.kind(InteractionResponseType::ChannelMessageWithSource);
-                    r.interaction_response_data(|d| {
-                        d.content(
-                            format!("**[{}/{}]:** Which content would you like to have access to?", question_index, question_max),
-                        );
-                        d.components(|c| {
-                            c.create_action_row(|a| {
-                                a.create_select_menu(|s| {
-                                    s.placeholder("Select your interest(s)");
-                                    s.options(|o| {
-										for spec in &additional_roles {
-											o.create_option(|opt| {
-												opt.label(spec.label);
-												opt.description(spec.description);
-												opt.emoji(ReactionType::Unicode(spec.display_emoji.to_string()));
-												opt.value(spec.value)
-											});
-										}
-                                        o.create_option(|opt| {
-                                            opt.label("[Skip] I don't want any!")
-                                                .description("Nope, I ain't need more.")
-                                                .emoji(ReactionType::Unicode("⏭".to_string()))
-                                                .value("none");
-                                            opt
+                        r.kind(InteractionResponseType::ChannelMessageWithSource);
+                        r.interaction_response_data(|d| {
+                            d.content(format!(
+                                "**[{}/{}]:** Which content would you like to have access to?",
+                                question_index, question_max
+                            ));
+                            d.components(|c| {
+                                c.create_action_row(|a| {
+                                    a.create_select_menu(|s| {
+                                        s.placeholder("Select your interest(s)");
+                                        s.options(|o| {
+                                            for spec in &additional_roles {
+                                                o.create_option(|opt| {
+                                                    opt.label(spec.label);
+                                                    opt.description(spec.description);
+                                                    opt.emoji(ReactionType::Unicode(
+                                                        spec.display_emoji.to_string(),
+                                                    ));
+                                                    opt.value(spec.value)
+                                                });
+                                            }
+                                            o.create_option(|opt| {
+                                                opt.label("[Skip] I don't want any!")
+                                                    .description("Nope, I ain't need more.")
+                                                    .emoji(ReactionType::Unicode("⏭".to_string()))
+                                                    .value("none");
+                                                opt
+                                            });
+                                            o
                                         });
-                                        o
+                                        s.custom_id("channel_choice")
+                                            .max_values(additional_roles.len().try_into().unwrap())
                                     });
-                                    s.custom_id("channel_choice").max_values(additional_roles.len().try_into().unwrap())
+                                    a
                                 });
-                                a
+                                c
                             });
-                            c
+                            d.custom_id("bruh").flags(MessageFlags::EPHEMERAL)
                         });
-                        d.custom_id("bruh")
-                            .flags(MessageFlags::EPHEMERAL)
-                    });
-                    r
-                })
-                .await
-                .unwrap();
+                        r
+                    })
+                    .await
+                    .unwrap();
 
-                question_index = question_index + 1;
+                    question_index = question_index + 1;
 
                     let mut interactions = mci
                         .get_interaction_response(&ctx.http)
@@ -562,15 +566,17 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 									    })
 								    }).await.unwrap();
 
-                                    let final_msg = "Awesome, your server profile will be updated now!".to_owned();
+                                    let final_msg =
+                                        "Awesome, your server profile will be updated now!"
+                                            .to_owned();
 
                                     interaction
-                                    .create_followup_message(&ctx.http, |d| {
-                                        d.content(final_msg).components(|c| c);
-                                        d.flags(MessageFlags::EPHEMERAL)
-                                    })
-                                    .await
-                                    .unwrap();
+                                        .create_followup_message(&ctx.http, |d| {
+                                            d.content(final_msg).components(|c| c);
+                                            d.flags(MessageFlags::EPHEMERAL)
+                                        })
+                                        .await
+                                        .unwrap();
 
                                     // Save the choices of last interaction
                                     let polls_role = SelectMenuSpec {
@@ -587,7 +593,8 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     // Remove all roles which can be updated by  second Introduction run
                                     if let Some(roles) = member.roles(&ctx.cache) {
                                         // Remove all assignable roles first
-                                        let mut all_assignable_roles: Vec<SelectMenuSpec> = Vec::new();
+                                        let mut all_assignable_roles: Vec<SelectMenuSpec> =
+                                            Vec::new();
                                         all_assignable_roles.append(&mut additional_roles.clone());
                                         let mut removeable_roles: Vec<RoleId> = Vec::new();
 
@@ -601,7 +608,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                         all_assignable_roles.push(subscribed_role);
 
                                         for role in roles {
-                                            if all_assignable_roles.iter().any(|x| x.value == role.name)
+                                            if all_assignable_roles
+                                                .iter()
+                                                .any(|x| x.value == role.name)
                                             {
                                                 removeable_roles.push(role.id);
                                             }
@@ -626,35 +635,49 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     break;
                                 }
 
-                                interaction.create_interaction_response(&ctx.http, |r| {
-									r.kind(InteractionResponseType::UpdateMessage).interaction_response_data(|d| {
-										d.content(
-                                            format!("**[{}/{}]:** Why did you join our community?", question_index, question_max)
-                                        ).components(|c| {
-											c.create_action_row(|a| {
-												a.create_button(|b|{
-													b.label("To hangout with others");
-													b.style(ButtonStyle::Secondary);
-													b.emoji(ReactionType::Unicode("🏄".to_string()));
-													b.custom_id("hangout")
-												});
-												a.create_button(|b|{
-													b.label("To get help with IOTA & Shimmer");
-													b.style(ButtonStyle::Secondary);
-													b.emoji(ReactionType::Unicode("✌️".to_string()));
-													b.custom_id("help")
-												});
-												a.create_button(|b|{
-													b.label("To develop on IOTA & Shimmer");
-													b.style(ButtonStyle::Secondary);
-													b.emoji(ReactionType::Unicode("🏡".to_string()));
-													b.custom_id("develop")
-												});
-												a
-											})
-										})
-									})
-								}).await.unwrap();
+                                interaction
+                                    .create_interaction_response(&ctx.http, |r| {
+                                        r.kind(InteractionResponseType::UpdateMessage)
+                                            .interaction_response_data(|d| {
+                                                d.content(format!(
+                                                    "**[{}/{}]:** Why did you join our community?",
+                                                    question_index, question_max
+                                                ))
+                                                .components(|c| {
+                                                    c.create_action_row(|a| {
+                                                        a.create_button(|b| {
+                                                            b.label("To hangout with others");
+                                                            b.style(ButtonStyle::Secondary);
+                                                            b.emoji(ReactionType::Unicode(
+                                                                "🏄".to_string(),
+                                                            ));
+                                                            b.custom_id("hangout")
+                                                        });
+                                                        a.create_button(|b| {
+                                                            b.label(
+                                                                "To get help with IOTA & Shimmer",
+                                                            );
+                                                            b.style(ButtonStyle::Secondary);
+                                                            b.emoji(ReactionType::Unicode(
+                                                                "✌️".to_string(),
+                                                            ));
+                                                            b.custom_id("help")
+                                                        });
+                                                        a.create_button(|b| {
+                                                            b.label("To develop on IOTA & Shimmer");
+                                                            b.style(ButtonStyle::Secondary);
+                                                            b.emoji(ReactionType::Unicode(
+                                                                "🏡".to_string(),
+                                                            ));
+                                                            b.custom_id("develop")
+                                                        });
+                                                        a
+                                                    })
+                                                })
+                                            })
+                                    })
+                                    .await
+                                    .unwrap();
 
                                 question_index = question_index + 1;
 
@@ -681,9 +704,10 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 
                                 let followup = interaction
                                     .create_followup_message(&ctx.http, |d| {
-                                        d.content(
-                                            format!("**[{}/{}]:** How did you find IOTA & Shimmer?", question_index, question_max)
-                                        );
+                                        d.content(format!(
+                                            "**[{}/{}]:** How did you find IOTA & Shimmer?",
+                                            question_index, question_max
+                                        ));
                                         d.components(|c| {
                                             c.create_action_row(|a| {
                                                 a.create_select_menu(|s| {
@@ -792,7 +816,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                     .await;
 
                                 assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
-                                .await;
+                                    .await;
 
                                 // save the found from data
                                 followup_results
@@ -823,7 +847,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 }
 
                                 assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
-                                .await;
+                                    .await;
 
                                 if never_introduced {
                                     // Wait for the submittion on INTRODUCTION_CHANNEL
@@ -909,26 +933,39 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 											.push_quote_line("• <https://wiki.iota.org>");
 
                                             let mut extra_msg = MessageBuilder::new();
-                                            if role_choices.contains(&additional_roles[6].value.to_string()) {
+                                            if role_choices
+                                                .contains(&additional_roles[6].value.to_string())
+                                            {
                                                 extra_msg.push(welcome_all());
-                                            }
-                                            else {
-                                                if role_choices.contains(&additional_roles[0].value.to_string()) {
+                                            } else {
+                                                if role_choices.contains(
+                                                    &additional_roles[0].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_newcomer());
                                                 }
-                                                if role_choices.contains(&additional_roles[1].value.to_string()) {
+                                                if role_choices.contains(
+                                                    &additional_roles[1].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_buidler());
                                                 }
-                                                if role_choices.contains(&additional_roles[2].value.to_string()) {
+                                                if role_choices.contains(
+                                                    &additional_roles[2].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_eary_adopter());
                                                 }
-                                                if role_choices.contains(&additional_roles[3].value.to_string()) {
+                                                if role_choices.contains(
+                                                    &additional_roles[3].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_governance());
                                                 }
-                                                if role_choices.contains(&additional_roles[4].value.to_string()) {
+                                                if role_choices.contains(
+                                                    &additional_roles[4].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_researcher());
                                                 }
-                                                if role_choices.contains(&additional_roles[5].value.to_string()) {
+                                                if role_choices.contains(
+                                                    &additional_roles[5].value.to_string(),
+                                                ) {
                                                     extra_msg.push(welcome_speculator());
                                                 }
                                             }
@@ -941,9 +978,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                 .unwrap();
                                             thread_msg.suppress_embeds(&ctx.http).await.unwrap();
                                             thread_msg = thread
-                                                .send_message(&ctx.http, |t| {
-                                                    t.content(extra_msg)
-                                                })
+                                                .send_message(&ctx.http, |t| t.content(extra_msg))
                                                 .await
                                                 .unwrap();
                                             thread_msg.suppress_embeds(&ctx.http).await.unwrap();
@@ -1316,7 +1351,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
             }
             // if !relevant_links.is_empty() {
             //     thread
-            //         .send_message(&ctx.http, |m| 
+            //         .send_message(&ctx.http, |m|
             //             m.content(format!(
             //                 "{} I also found some relevant links which might answer your question, please do check them out below 🙏:",
             //                 &user_mention
@@ -1337,17 +1372,18 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 fn welcome_all() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Don't wanna miss a thing, eh?")
-    .push_line("Get ready to unlock the whole potential of the server.
+        .push_line(
+            "Get ready to unlock the whole potential of the server.
 
-    👇")
-    .push_line("")
-
-    .push(welcome_newcomer())
-    .push(welcome_buidler())
-    .push(welcome_eary_adopter())
-    .push(welcome_governance())
-    .push(welcome_researcher())
-    .push(welcome_speculator());
+    👇",
+        )
+        .push_line("")
+        .push(welcome_newcomer())
+        .push(welcome_buidler())
+        .push(welcome_eary_adopter())
+        .push(welcome_governance())
+        .push(welcome_researcher())
+        .push(welcome_speculator());
 
     msg
 }
@@ -1381,7 +1417,7 @@ fn welcome_eary_adopter() -> MessageBuilder {
     - Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo https://github.com/iotaledger/tips
      - Already heared about our Touchpoint initiative to build, launch and scale the next generation of dApps and infrastructure? Learn more: <https://assembly.sc/touchpoint>")
     .push_line("");
-    
+
     msg
 }
 
@@ -1390,7 +1426,7 @@ fn welcome_governance() -> MessageBuilder {
     msg.push_bold_line("Ready to take matter in your own hands?")
     .push_line("The community is empowered to take part in governance. Start participating in key decisions at our governance forum <https://govern.iota.org>")
     .push_line("");
-    
+
     msg
 }
 
@@ -1402,7 +1438,7 @@ fn welcome_researcher() -> MessageBuilder {
     - Keep yourself up-to-date with the latest coordicide specs https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface
     And join the discussion in <#970953102503071780>")
     .push_line("");
-    
+
     msg
 }
 
@@ -1412,6 +1448,6 @@ fn welcome_speculator() -> MessageBuilder {
     .push_line("- Take off your shoes and join <#970953101894889530>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)
     - Discuss other projects eloquently in <#970953101894889531>")
     .push_line("");
-    
+
     msg
 }

@@ -52,35 +52,36 @@ pub async fn responder(_ctx: &Context) {
         // let msg = qq.unwrap();
         // let last_msg = msg.first().unwrap();
 
-        let _m = channel_id
-			.send_message(&_ctx, |m| {
-				m.content(
+        let _m =
+            channel_id
+                .send_message(&_ctx, |m| {
+                    m.content(
 					MessageBuilder::new()
 						.push_underline_line("**Welcome to the IOTA & Shimmer community!**")
 						.push_line("We are here to empower the community, we’re happy to help you out 🧡")
 						.push_line("Before **asking a question**, remember to check out our documentation"));
-				m.components(|c| {
-					c.create_action_row(|ar| {
-						ar.create_button(|button| {
-							button
-								.style(ButtonStyle::Primary)
-								.label("Ask a question")
-								.custom_id("gitpod_create_issue")
-								.emoji(ReactionType::Unicode("💡".to_string()))
-						});
-						ar.create_button(|button| {
-							button
-								// .custom_id("gitpod_docs_link")
-								.style(ButtonStyle::Link)
-								.label("Docs")
-								.emoji(ReactionType::Unicode("📚".to_string()))
-								.url("https://wiki.iota.org/")
-						})
-					})
-				})
-			})
-			.await
-			.unwrap();
+                    m.components(|c| {
+                        c.create_action_row(|ar| {
+                            ar.create_button(|button| {
+                                button
+                                    .style(ButtonStyle::Primary)
+                                    .label("Ask a question")
+                                    .custom_id("gitpod_create_issue")
+                                    .emoji(ReactionType::Unicode("💡".to_string()))
+                            });
+                            ar.create_button(|button| {
+                                button
+                                    // .custom_id("gitpod_docs_link")
+                                    .style(ButtonStyle::Link)
+                                    .label("Docs")
+                                    .emoji(ReactionType::Unicode("📚".to_string()))
+                                    .url("https://wiki.iota.org/")
+                            })
+                        })
+                    })
+                })
+                .await
+                .unwrap();
     }
 
     let placeholder_text = "👇 **Press the button** to tailor the server to your preferences (scroll down in the menus for more options)";
