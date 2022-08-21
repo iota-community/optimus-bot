@@ -74,7 +74,7 @@ impl Db {
 }
 
 #[command]
-#[required_permissions(ADMINISTRATOR)]
+#[allowed_roles("DevEx", "Discord Dancer")]
 async fn statistics(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     //println!("{:?}", ctx);
     match _args.message() {

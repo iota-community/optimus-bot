@@ -46,7 +46,7 @@ impl Db {
 //     getting_started,
 //     default_role
 // )]
-#[required_permissions(ADMINISTRATOR)]
+#[allowed_roles("DevEx", "Discord Dancer")]
 async fn config(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     if _args.is_empty() {
         msg.reply(&ctx.http, format!("{} no argument provided", _args.rest()))
