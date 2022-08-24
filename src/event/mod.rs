@@ -67,7 +67,7 @@ const GETTING_STARTED_CHANNEL: ChannelId = if cfg!(debug_assertions) {
 const INTRODUCTION_CHANNEL: ChannelId = if cfg!(debug_assertions) {
     ChannelId(1002520215550185532) //debug Discord Server channel ID
 } else {
-    ChannelId(1002520215550185532) // prod Discord Server channel ID
+    ChannelId(1009766193437081641) // prod Discord Server channel ID
 };
 
 pub struct Listener {
