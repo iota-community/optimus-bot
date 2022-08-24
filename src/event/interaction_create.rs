@@ -1211,7 +1211,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                     if description.value.chars().count() < 1960 {
                         m.content(
                             MessageBuilder::new()
-                                .push_underline_line("**Description**")
+                                .push_line("**Description**")
                                 .push_line(&desc_safe)
                                 .push_bold("---------------")
                                 .build(),
