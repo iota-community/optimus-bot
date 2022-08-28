@@ -730,7 +730,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                         });
                                                         o
                                                     });
-                                                    s.custom_id("found_gitpod_from").max_values(5)
+                                                    s.custom_id("found_gitpod_from").max_values(poll_entries.len().try_into().unwrap())
                                                 });
                                                 a
                                             });
