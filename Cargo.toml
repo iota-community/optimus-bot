@@ -24,10 +24,9 @@ features = ["rustls-tls"]
 version = "0.11.10"
 
 [dependencies.serenity]
-path = "serenity/"
 default-features = false
 features = ["client", "unstable_discord_api", "gateway", "rustls_backend", "model", "utils", "cache", "framework", "standard_framework", "collector"]
-#version = "0.10.10"
+version = "0.11"
 
 [dependencies.tokio]
 version = "1.18.2"
