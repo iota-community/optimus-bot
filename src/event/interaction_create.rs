@@ -814,13 +814,6 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                 assign_roles(&mci, ctx, &role_choices, &mut member, &member_role)
                                     .await;
 
-                                // save the found from data
-                                followup_results
-                                    .data
-                                    .values
-			    .iter()
-                                    .for_each(|x| role_choices.push(x.to_string()));
-
                                 // Remove old roles
                                 if let Some(roles) = member.roles(&ctx.cache) {
                                     // Remove all assignable roles first
