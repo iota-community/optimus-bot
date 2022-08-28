@@ -98,11 +98,6 @@ async fn get_role(
             r.clone()
         }
     };
-    if role.name != "Member" && role.name != "Gitpodders" && !role.permissions.is_empty() {
-        role.edit(&ctx.http, |r| r.permissions(Permissions::empty()))
-            .await
-            .unwrap();
-    }
     role
 }
 
