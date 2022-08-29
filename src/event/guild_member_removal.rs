@@ -19,7 +19,7 @@ pub async fn responder(
             &json!({
                 "content":
                     format!(
-                        "> :arrow_forward: **{}** (**{}**) is no more <a:duckdance:835457840365568012>, sed lyf...",
+                        "> :arrow_forward: **{}** (**{}**) left 👋, we hope to see you again...",
                         _user.tag(),
                         _user.id
                     )
