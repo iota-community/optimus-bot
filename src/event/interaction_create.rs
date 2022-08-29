@@ -730,7 +730,9 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
                                                         });
                                                         o
                                                     });
-                                                    s.custom_id("found_gitpod_from").max_values(poll_entries.len().try_into().unwrap())
+                                                    s.custom_id("found_gitpod_from").max_values(
+                                                        poll_entries.len().try_into().unwrap(),
+                                                    )
                                                 });
                                                 a
                                             });
@@ -1373,8 +1375,8 @@ fn welcome_all() -> MessageBuilder {
 fn welcome_newcomer() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Hello and welcome to your community")
-    .push_line("- Browse the channels and feel free to ask questions to learn more.
-    - Not all activitiy is visible right now. Get dedicated roles to unlock more channels in <#884705920028930068>.") // get-your-badges channel
+    .push_line("- Browse the channels and feel free to ask questions to learn more.")
+    .push_line("- Not all activitiy is visible right now. Get dedicated roles to unlock more channels in <#884705920028930068>.") // get-your-badges channel
     .push_line("");
 
     msg
@@ -1383,9 +1385,9 @@ fn welcome_newcomer() -> MessageBuilder {
 fn welcome_buidler() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Ready to buidl?")
-    .push_line("We suggest to start with the wiki at <https://wiki.iota.org>.
-    - Currently you may be interested in Stardust, the first iteration of the Shimmer innovation network with support for a multi asset DLT. <https://wiki.iota.org/introduction/develop/welcome>.
-    - For a quick start have a look at our tutorial section: <https://wiki.iota.org/tutorials>.")
+    .push_line("We suggest to start with the wiki at <https://wiki.iota.org>.")
+    .push_line("- Currently you may be interested in Stardust, the first iteration of the Shimmer innovation network with support for a multi asset DLT. <https://wiki.iota.org/introduction/develop/welcome>.")
+    .push_line("- For a quick start have a look at our tutorial section: <https://wiki.iota.org/tutorials>.")
     .push_line("");
 
     msg
@@ -1394,10 +1396,10 @@ fn welcome_buidler() -> MessageBuilder {
 fn welcome_eary_adopter() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("The early bird catches the worm")
-    .push_line("- Hangout with the community, explore and try out upcoming dApps and opportunities.
-    - Explore ecosystem projects: <https://shimmer.network/ecosystem>
-    - Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo <https://github.com/iotaledger/tips>
-     - Already heared about our Touchpoint initiative to build, launch and scale the next generation of dApps and infrastructure? Learn more: <https://assembly.sc/touchpoint>")
+    .push_line("- Hangout with the community, explore and try out upcoming dApps and opportunities.")
+    .push_line("- Explore ecosystem projects: <https://shimmer.network/ecosystem>")
+    .push_line("- Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo <https://github.com/iotaledger/tips>")
+    .push_line("- Already heared about our Touchpoint initiative to build, launch and scale the next generation of dApps and infrastructure? Learn more: <https://assembly.sc/touchpoint>")
     .push_line("");
 
     msg
@@ -1415,9 +1417,9 @@ fn welcome_governance() -> MessageBuilder {
 fn welcome_researcher() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("We build on the shoulders of giants")
-    .push_line("Research is a key element to the project.
-    - Have a look at our research papers <https://wiki.iota.org/research/research-papers>
-    - Keep yourself up-to-date with the latest coordicide specs <https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface>
+    .push_line("Research is a key element to the project.")
+    .push_line("- Have a look at our research papers <https://wiki.iota.org/research/research-papers>")
+    .push_line("- Keep yourself up-to-date with the latest coordicide specs <https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface>
     And join the discussion in <#399035929106579466>") // tanglemath
     .push_line("");
 
@@ -1427,8 +1429,8 @@ fn welcome_researcher() -> MessageBuilder {
 fn welcome_speculator() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("Ready to ape in?")
-    .push_line("- Take off your shoes and join <#738665041217323068>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)
-    - Discuss other projects eloquently in <#738665060515315842>") //speculation first, altcoins second
+    .push_line("- Take off your shoes and join <#738665041217323068>. Where big 🧠 start as degens 🦍 and become regens  (And don't forget to give *p* bot some love)")
+    .push_line("- Discuss other projects eloquently in <#738665060515315842>") //speculation first, altcoins second
     .push_line("");
 
     msg
