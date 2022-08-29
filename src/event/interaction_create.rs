@@ -1396,7 +1396,7 @@ fn welcome_eary_adopter() -> MessageBuilder {
     msg.push_bold_line("The early bird catches the worm")
     .push_line("- Hangout with the community, explore and try out upcoming dApps and opportunities.
     - Explore ecosystem projects: <https://shimmer.network/ecosystem>
-    - Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo https://github.com/iotaledger/tips
+    - Be informed about the newest development proposals early, have a look at our Tangle Improvement Proposals (TIPs) repo <https://github.com/iotaledger/tips>
      - Already heared about our Touchpoint initiative to build, launch and scale the next generation of dApps and infrastructure? Learn more: <https://assembly.sc/touchpoint>")
     .push_line("");
 
@@ -1416,8 +1416,8 @@ fn welcome_researcher() -> MessageBuilder {
     let mut msg = MessageBuilder::new();
     msg.push_bold_line("We build on the shoulders of giants")
     .push_line("Research is a key element to the project.
-    - Have a look at our research papers https://wiki.iota.org/research/research-papers
-    - Keep yourself up-to-date with the latest coordicide specs https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface
+    - Have a look at our research papers <https://wiki.iota.org/research/research-papers>
+    - Keep yourself up-to-date with the latest coordicide specs <https://wiki.iota.org/IOTA-2.0-Research-Specifications/Preface>
     And join the discussion in <#399035929106579466>") // tanglemath
     .push_line("");
 
