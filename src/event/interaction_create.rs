@@ -293,7 +293,7 @@ async fn show_issue_form(mci: &MessageComponentInteraction, ctx: &Context) {
         r.kind(InteractionResponseType::Modal);
         r.interaction_response_data(|d| {
             d.custom_id("gitpod_help_button_press");
-            d.title("Template");
+            d.title("Write your question here.");
             d.components(|c| {
                 c.create_action_row(|ar| {
                     ar.create_input_text(|it| {
