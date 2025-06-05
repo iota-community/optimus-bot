@@ -17,7 +17,7 @@ use serenity::{
         guild::{Emoji, Role},
         id::RoleId,
         prelude::component::Button,
-        Permissions,
+        // Permissions,
     },
     utils::{read_image, MessageBuilder},
 };
@@ -1217,7 +1217,7 @@ pub async fn responder(ctx: Context, interaction: Interaction) {
 
             thread
                 .send_message(&ctx, |m| {
-                    m.content( MessageBuilder::new().push_quote(format!("Hey {}! Thank you for raising this — please hang tight as someone from our community may help you out. Meanwhile, feel free to add anymore information in this thread!", user_mention)).build()).components(|c| {
+                    m.content( MessageBuilder::new().push_quote(format!("Hey {}! Thank you for raising this — please hang tight as someone from our community may help you out. Meanwhile, feel free to add anymore information in this thread!", user_mention)).push_line("🚨 Team members will NEVER contact you first. Watch out for scammers contacting you!").build()).components(|c| {
                         c.create_action_row(|ar| {
                             ar.create_button(|button| {
                                 button
